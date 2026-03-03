@@ -1,0 +1,106 @@
+package floorcontroller
+
+import (
+	"backend-rsmata-360/models"
+	"strconv"
+
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+)
+
+func Index(c *fiber.Ctx) error {
+	var floors []models.Floor
+
+	models.DB.Find(&floors)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"floors": floors})
+}
+
+func Show(c *fiber.Ctx) error {
+	var floor models.Floor
+	id := c.Params("id")
+	convertInt, errConv := strconv.Atoi(id)
+
+	if errConv != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": errConv.Error()})
+	}
+
+	if err := models.DB.First(&floor, convertInt).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Data Not Found "})
+
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+		}
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"floor": floor})
+}
+
+func Create(c *fiber.Ctx) error {
+	var floor models.Floor
+
+	if err := c.BodyParser(&floor); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	result := models.DB.Create(&floor)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": result.Error.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"floor": floor})
+}
+
+func Update(c *fiber.Ctx) error {
+	var floor models.Floor
+
+	id := c.Params("id")
+	convertInt, errConv := strconv.Atoi(id)
+
+	if errConv != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": errConv.Error()})
+	}
+
+	if err := c.BodyParser(&floor); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error()})
+	} 
+
+	if models.DB.Model(&floor).Where("id = ?", convertInt).Updates(&floor).RowsAffected == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Can't Update the Data"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Update FLoor "})
+}
+
+func Delete(c *fiber.Ctx) error {
+	var floor models.Floor
+
+	id := c.Params("id")
+	convertInt, errConv := strconv.Atoi(id)
+
+	if errConv != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": errConv.Error()})
+	}
+
+	if models.DB.Delete(&floor, convertInt).RowsAffected == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot Delete the Data"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Data Completely Deleted!!"})
+}
+
+/*
+
+! Kendala kode nya
+* masih bingung cara untuk buat api yang bisa ada requirednya, jadi jika tidak user tidak isi salah satu data yang ada yang di isi tapi datanya required makan akan error 
+
+*Pelajari semua kode pada bagian update nya karena sekarang kamu tidak mengerti 
+*Pelajari semua kode pada bagian delete nanti karena sekarang kamu tidak mengerti
+
+**/
