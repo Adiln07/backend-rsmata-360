@@ -1,7 +1,7 @@
 package routers
 
 import (
-	floorcontroller "backend-rsmata-360/controllers/floorController"
+	floorcontroller "backend-rsmata-360/controllers"
 
 	"github.com/gofiber/fiber/v2"
 )
