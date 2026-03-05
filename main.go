@@ -15,9 +15,12 @@ func main() {
 
 	models.ConnectDatabase()
 
-	api := app.Group("/api");
+	api := app.Group("/api")
+
+	app.Static("/uploads", "./uploads")
 
 	api.Route("/floor", routers.FloorRoutes)
+	api.Route("/upload", routers.UploadRoutes)
 
 	app.Listen(":8080")
 }

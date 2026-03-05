@@ -41,21 +41,6 @@ func Show(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"floor": floor})
 }
 
-// func Create(c *fiber.Ctx) error {
-// 	var floor models.Floor
-
-// 	if err := c.BodyParser(&floor); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
-// 	}
-
-// 	result := models.DB.Create(&floor)
-
-// 	if result.Error != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": result.Error.Error()})
-// 	}
-
-// 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"floor": floor})
-// }
 
 func Create(c *fiber.Ctx) error {
 	var request requests.FloorCreateRequest
@@ -92,32 +77,8 @@ func Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"floor": floor})
 }
 
-// func Update(c *fiber.Ctx) error {
-// 	var floor models.Floor
-
-// 	id := c.Params("id")
-// 	convertInt, errConv := strconv.Atoi(id)
-
-// 	if errConv != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"message": errConv.Error()})
-// 	}
-
-// 	if err := c.BodyParser(&floor); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"message": err.Error()})
-// 	} 
-
-// 	if models.DB.Model(&floor).Where("id = ?", convertInt).Updates(&floor).RowsAffected == 0 {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"message": "Can't Update the Data"})
-// 	}
-
-// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Update FLoor "})
-// }
-
 func Update(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("id") 
 	convertInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
