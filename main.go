@@ -23,6 +23,7 @@ func main() {
 	api.Route("/upload", routers.UploadRoutes)
 	api.Route("/room", routers.RoomRoutes)
 	api.Route("/hotspot-information", routers.HotspotInformationRoutes)
+	api.Route("/hotspot-navigation", routers.HotspotNavRoutes)
 
 	app.Listen(":8080")
 }
