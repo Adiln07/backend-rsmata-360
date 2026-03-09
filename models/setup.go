@@ -14,6 +14,7 @@ func ConnectDatabase(){
 	}
 
 	database.AutoMigrate(&Floor{})
+	database.AutoMigrate(&Room{})
 
 	DB = database
 

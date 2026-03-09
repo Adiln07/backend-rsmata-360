@@ -21,6 +21,7 @@ func main() {
 
 	api.Route("/floor", routers.FloorRoutes)
 	api.Route("/upload", routers.UploadRoutes)
+	api.Route("/room", routers.RoomRoutes)
 
 	app.Listen(":8080")
 }
