@@ -71,6 +71,18 @@ func CreateInformation(c *fiber.Ctx) error{
 		if err := models.DB.Create(&information).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}
+
+	var room models.Room
+
+	if err := models.DB.First(&room, information.Room_Id).Error; err != nil{
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Room Not Found "})
+
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+		}
+	}
 	
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Created Information Successfully"})
 }
