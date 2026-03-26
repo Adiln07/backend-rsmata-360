@@ -36,30 +36,89 @@ func GetAllFloorsWithRooms(c *fiber.Ctx) error {
 
 //* Map cepat untuk mengambil room by id
 roomMap := make(map[uint]models.Room)
+roomIDs := []uint{}
+
 for _, room := range rooms{
 	roomMap[room.Id] = room
+	roomIDs = append(roomIDs, room.Id)
 }
 
-// *Response 
-var response []responses.FloorRoomWithRoomsResponse
+// * Hotspot Information 
+var hotSpotInformation []models.HotspotInformation
+
+	if err := models.DB.Raw("SELECT id, room_id, yaw, pitch, label, description, status FROM hotspot_information WHERE room_id IN (?)", roomIDs).Scan(&hotSpotInformation).Error; err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()}) 
+	}
+
+	var hotspotNav []models.HotspotNav
+	if err := models.DB.Raw("SELECT id, room_id, yaw, pitch, description, target_room_label, target_room_id, status FROM hotspot_navigasi WHERE room_id IN (?)", roomIDs).Scan(&hotspotNav).Error; err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	mapInfo := make(map[uint][]models.HotspotInformation)
+	mapNav := make(map[uint][]models.HotspotNav)
+
+	for _, info := range hotSpotInformation {
+		mapInfo[info.Room_Id] = append(mapInfo[info.Room_Id], info)
+	}
+
+	for _, nav := range hotspotNav {
+		mapNav[nav.Room_Id] = append(mapNav[nav.Room_Id], nav)
+	}
+
+// *Response
+var response []responses.FloorWithRoomsChildrenResponse
 
 for _, floor := range floors{
-	var roomList []responses.RoomResponse
+	var roomList []responses.RoomWithChildrenResponse
 	roomIDs := floorRoomMap[floor.Id]
 
 	for _, rid := range roomIDs{
 		if room, ok := roomMap[rid]; ok{
-			roomList = append(roomList, responses.RoomResponse{
+
+			// *convert hotspot info -> response type
+			var infoResponse []responses.HotspotInformationResponse
+			for _, info := range mapInfo[room.Id] {
+				infoResponse =  append(infoResponse, responses.HotspotInformationResponse{
+					Id: info.Id,
+					Room_Id: info.Room_Id,
+					Yaw: info.Yaw,
+					Pitch: info.Pitch,
+					Label: info.Label,
+					Description: info.Description,
+					Status: info.Status,
+				})
+			}
+
+			// * convert hotspot Navigation -> response type
+			var navResponse []responses.HotspotNavigationResponse
+			for _, nav := range mapNav[room.Id]{
+				navResponse = append(navResponse, responses.HotspotNavigationResponse{
+					Id: nav.Id,
+					Room_Id: nav.Room_Id,
+					Yaw: nav.Yaw,
+					Pitch: nav.Pitch,
+					Description: nav.Description,
+					Target_Room_Label: nav.Target_Room_Label,
+					Target_Room_Id: nav.Target_Room_Id,
+					Status: nav.Status,
+				})
+			}
+
+			// * convert hotspot info & response tytpe
+			roomList = append(roomList, responses.RoomWithChildrenResponse{
 				Id:room.Id,
 				Name: room.Name,
 				Image: room.Image,
 				Pos_x: room.Pos_x,
 				Pos_y: room.Pos_y,
 				Status: room.Status,
+				HotspotInfo: infoResponse,
+				HotspotNav: navResponse,
 			})
 		}
 	}
-	response = append(response, responses.FloorRoomWithRoomsResponse{
+	response = append(response, responses.FloorWithRoomsChildrenResponse{
 		Id: floor.Id,
 		Name: floor.Name,
 		FloorPlan: floor.FloorPlan,
@@ -69,6 +128,11 @@ for _, floor := range floors{
 }
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"floors": response})
 }
+
+// func GetAllFloorsWithRooms(c *fiber.Ctx) error {
+	
+// 	return nil
+// }
 
 func GetFLoorByIdWithRooms(c *fiber.Ctx)error{
 
