@@ -8,8 +8,8 @@ import (
 
 func RoomRoutes(router fiber.Router) {
 	router.Get("/", roomController.GetAllRoom)
-	router.Get("/:id", roomController.GetRoomById)
+	router.Get("/detail", roomController.GetRoomById)
 	router.Post("/", roomController.CreateRoom)
-	router.Patch("/:id", roomController.UpdateRoom)
-	router.Delete("/:id", roomController.DeleteRoom)
-}
+	router.Patch("/", roomController.UpdateRoom)
+	router.Delete("/", roomController.DeleteRoom)
+} 

@@ -8,8 +8,8 @@ import (
 
 func FloorRoutes(router fiber.Router) {
 	router.Get("/", floorcontroller.Index)
-	router.Get("/:id", floorcontroller.Show)
+	router.Get("/detail", floorcontroller.Show)
     router.Post("/", floorcontroller.Create)
-    router.Patch("/:id", floorcontroller.Update)
-    router.Delete("/:id", floorcontroller.Delete)
+    router.Patch("/", floorcontroller.Update)
+    router.Delete("/", floorcontroller.Delete)
 }

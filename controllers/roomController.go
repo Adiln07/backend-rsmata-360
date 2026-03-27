@@ -5,6 +5,7 @@ import (
 	"backend-rsmata-360/requests"
 	"backend-rsmata-360/validators"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -26,7 +27,13 @@ func GetAllRoom(c *fiber.Ctx) error {
 func GetRoomById(c *fiber.Ctx) error{
 
 	var room models.Room
-	id := c.Params("id")
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message":"Query Params Id Is Required",
+		})
+	}
 
 	convertInt , errConv := strconv.Atoi(id)
 
@@ -115,7 +122,13 @@ func CreateRoom(c *fiber.Ctx) error{
 
 func UpdateRoom(c *fiber.Ctx) error{
 
-	id := c.Params("id")
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message":"Query Params Id Is Required",
+		})
+	}
 
 	convInt, errConv := strconv.Atoi(id)
 
@@ -134,6 +147,18 @@ func UpdateRoom(c *fiber.Ctx) error{
 		updateMap["name"] = *request.Name
 	}
 	if request.Image != nil {
+
+		var oldRoom models.Room
+
+		if err:= models.DB.First(&oldRoom, convInt).Error; err != nil{
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+		}
+
+		if oldRoom.Image != ""{
+			oldPath := "." + oldRoom.Image
+			_ = os.Remove(oldPath)
+		}
+
 		updateMap["image"] = *request.Image
 	}
 	if request.Pos_x != nil {
@@ -176,7 +201,13 @@ func UpdateRoom(c *fiber.Ctx) error{
 func DeleteRoom(c *fiber.Ctx) error{
 	var room models.Room
 
-	id := c.Params("id")
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message":"Query Params Id Is Required",
+		})
+	}
 	convertInt, errConv := strconv.Atoi(id)
 	
 	if errConv != nil {

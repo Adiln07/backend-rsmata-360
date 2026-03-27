@@ -21,7 +21,14 @@ func Index(c *fiber.Ctx) error {
 
 func Show(c *fiber.Ctx) error {
 	var floor models.Floor
-	id := c.Params("id")
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convertInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -78,7 +85,14 @@ func Create(c *fiber.Ctx) error {
 }
 
 func Update(c *fiber.Ctx) error {
-	id := c.Params("id") 
+	id := c.Query("id") 
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convertInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -110,12 +124,12 @@ func Update(c *fiber.Ctx) error {
 
 	result :=models.DB.Model(&models.Floor{}).Where("id = ?", convertInt).Updates(updateMap)
 	
-	if result.RowsAffected == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot Update the Data"})
-	}
-
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": result.Error.Error()})
+	}
+
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot Update the Data"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Data Successfully Updated!!"})
@@ -125,7 +139,14 @@ func Update(c *fiber.Ctx) error {
 func Delete(c *fiber.Ctx) error {
 	var floor models.Floor
 
-	id := c.Params("id")
+	id := c.Query("id") 
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convertInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -133,7 +154,13 @@ func Delete(c *fiber.Ctx) error {
 			"message": errConv.Error()})
 	}
 
-	if models.DB.Delete(&floor, convertInt).RowsAffected == 0 {
+	result := models.DB.Delete(&floor, convertInt)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": result.Error.Error()})
+	}
+
+	if result.RowsAffected == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot Delete the Data"})
 	}
 
