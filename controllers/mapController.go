@@ -137,7 +137,14 @@ for _, floor := range floors{
 func GetFLoorByIdWithRooms(c *fiber.Ctx)error{
 
 	// * Ambil ID floor dari parameter
-	id := c.Params("id")
+	id := c.Query("id")
+	
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+	
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil{
