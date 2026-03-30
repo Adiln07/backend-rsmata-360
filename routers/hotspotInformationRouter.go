@@ -8,8 +8,8 @@ import (
 
 func HotspotInformationRoutes(router fiber.Router) {
 	router.Get("/", hotspotInformationController.GetAllInformation)
-	router.Get("/:id", hotspotInformationController.GetInformationById)
+	router.Get("/detail/:id", hotspotInformationController.GetInformationById)
 	router.Post("/", hotspotInformationController.CreateInformation)
-	router.Patch("/:id", hotspotInformationController.UpdateInformation)
-	router.Delete("/:id", hotspotInformationController.DeleteInformation)
+	router.Patch("/", hotspotInformationController.UpdateInformation)
+	router.Delete("/", hotspotInformationController.DeleteInformation)
 }

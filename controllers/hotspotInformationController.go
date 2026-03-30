@@ -23,7 +23,14 @@ func GetAllInformation(c *fiber.Ctx) error{
 }
 func GetInformationById(c *fiber.Ctx) error{
 	var hotspotInformation models.HotspotInformation
-	id := c.Params("id")
+	
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
 
 	convInt, errConv := strconv.Atoi(id)
 
@@ -88,7 +95,14 @@ func CreateInformation(c *fiber.Ctx) error{
 }
 func UpdateInformation(c *fiber.Ctx) error{
 
-	id := c.Params("id")
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -150,7 +164,15 @@ func UpdateInformation(c *fiber.Ctx) error{
 }
 func DeleteInformation(c *fiber.Ctx) error{
 	var information models.HotspotInformation
-	id := c.Params("id")
+
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil{

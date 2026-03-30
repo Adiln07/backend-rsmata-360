@@ -24,7 +24,15 @@ func GetAllNavigation(c *fiber.Ctx) error {
 }
 func GetNavigationById(c *fiber.Ctx) error {
 	var hotspotNavigation models.HotspotNav
-	id := c.Params("id")
+
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -77,7 +85,15 @@ func CreateNavigation(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Created Navigation Successfully"})
 }
 func UpdateNavigation(c *fiber.Ctx) error {
-	id := c.Params("id")
+
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
@@ -135,7 +151,15 @@ func UpdateNavigation(c *fiber.Ctx) error {
 }
 func DeleteNavigation(c *fiber.Ctx) error {
 	var navigation models.HotspotNav
-	id := c.Params("id")
+
+	id := c.Query("id")
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Query parameter 'Id' is Required",
+		})
+	}
+
 	convInt, errConv := strconv.Atoi(id)
 
 	if errConv != nil {
