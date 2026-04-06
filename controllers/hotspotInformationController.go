@@ -1,104 +1,132 @@
 package controllers
 
 import (
-	"backend-rsmata-360/models"
 	"backend-rsmata-360/requests"
+	"backend-rsmata-360/usecases"
 	"backend-rsmata-360/validators"
 	"fmt"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
 func GetAllInformation(c *fiber.Ctx) error{
-	var hotspotInformations []models.HotspotInformation
+	hotspotInformations, err := usecases.GetAllHotspotInformation()
 
-	if err := models.DB.Raw("SELECT id, room_id, yaw, pitch, label, description, status FROM hotspot_information").Scan(&hotspotInformations).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"hotspot_informations": hotspotInformations})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data": hotspotInformations,
+	})
 }
+
 func GetInformationById(c *fiber.Ctx) error{
-	var hotspotInformation models.HotspotInformation
-	
 	id := c.Query("id")
 
 	if id == ""{
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "failed",
 			"message": "Query parameter 'Id' is Required",
 		})
 	}
 
-	convInt, errConv := strconv.Atoi(id)
+	convInt, errorConv := strconv.Atoi(id)
 
-	if errConv != nil {
+	if errorConv != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": errConv.Error()})
+			"status": "failed",
+			"message": errorConv.Error(),
+		})
 	}
 
-	if err := models.DB.Raw("SELECT id, room_id, yaw, pitch, label, description, status FROM hotspot_information WHERE id = ?", convInt).Scan(&hotspotInformation).Error; err != nil{
-		switch err {
-			case gorm.ErrRecordNotFound:
-				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Data Not Found"})
-			default:
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	hotspotInformation, err := usecases.GetHotspotInformationById(convInt)
+
+	if err != nil{
+		if err.Error() == "hotspot information not found"{
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Hotspot Information not found",
+			})
 		}
+
+		if err.Error() == "invalid hotspot information id" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Invalid hotspot information id",
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"hotspot_information": hotspotInformation})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data": hotspotInformation,
+	})
 }
-func CreateInformation(c *fiber.Ctx) error{
-	var request requests.HotspotInformationCreateRequest
 
-	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+
+func CreateInformation(c *fiber.Ctx) error{
+
+	var hotspotInformationCreateRequest requests.HotspotInformationCreateRequest
+
+	if err := c.BodyParser(&hotspotInformationCreateRequest); err != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":err.Error(),
+		})
 	}
 
-	if err := validators.Validate.Struct(request); err != nil {
+	if err := validators.Validate.Struct(hotspotInformationCreateRequest); err != nil {
 		errors := err.(validator.ValidationErrors)
 		errorMessages := make([]string, 0)
 		for _, e := range errors {
 			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
-		}	
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": errorMessages})
- 		}
-
-		information := models.HotspotInformation{
-			Room_Id: request.Room_Id,
-			Yaw: request.Yaw,
-			Pitch: request.Pitch,
-			Label: request.Label,
-			Description: request.Description,
-			Status: request.Status,
-			}
-
-		if err := models.DB.Create(&information).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
-	}
-
-	var room models.Room
-
-	if err := models.DB.First(&room, information.Room_Id).Error; err != nil{
-		switch err {
-		case gorm.ErrRecordNotFound:
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Room Not Found "})
-
-		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "failed",
+			"message": errorMessages,
+		})
 	}
-	
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Created Information Successfully"})
-}
-func UpdateInformation(c *fiber.Ctx) error{
 
+	hotspotInformation, err := usecases.CreateInformation(hotspotInformationCreateRequest)
+
+	if err != nil{
+		if err.Error() == "room not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Room not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data": hotspotInformation,
+	})
+}
+
+
+func UpdateInformation(c *fiber.Ctx) error{
 	id := c.Query("id")
 
 	if id == ""{
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
 			"message": "Query parameter 'Id' is Required",
 		})
 	}
@@ -107,81 +135,119 @@ func UpdateInformation(c *fiber.Ctx) error{
 
 	if errConv != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": errConv.Error()})
-	}
-	var request requests.HotspotInformationUpdateRequest
-
-	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+			"status": "failed",
+			"message": errConv.Error(),
+		})
 	}
 
-	updateMap := make(map[string]interface{})
+	var hotspotInformationUpdateRequest requests.HotspotInformationUpdateRequest
 
-	if request.Room_Id != nil {
-		updateMap["room_id"] = *request.Room_Id
-	}
-	if request.Yaw != nil {
-		updateMap["yaw"] = *request.Yaw
-	}
-	if request.Pitch != nil {
-		updateMap["pitch"] = *request.Pitch
-	}
-	if request.Label != nil {
-		updateMap["label"] = *request.Label
-	}
-	if request.Description != nil {
-		updateMap["description"] = *request.Description
-	}
-	if request.Status != nil {
-		updateMap["status"] = *request.Status
+	if err := c.BodyParser(&hotspotInformationUpdateRequest); err != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
 	}
 
-	if len(updateMap) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No fields to update"})
-	}
+	err := usecases.UpdateInformation(hotspotInformationUpdateRequest, convInt)
 
-	var information models.HotspotInformation
-
-	if err := models.DB.First(&information, convInt).Error; err != nil{
-		if err == gorm.ErrRecordNotFound {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Data Not Found"})
-		}else{
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	if err != nil{
+		if err.Error() =="hotspot information not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Hotspot Information not found",
+			})
 		}
+		if err.Error() == "invalid hotspot information id" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Invalid hotspot information id",
+			})
+		}
+		if err.Error() == "no data to update" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status": "failed",
+				"message": "No data to update",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
 	}
 
-	result := models.DB.Model(&information).Updates(updateMap)
-
-	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": result.Error.Error()})
-	}
-
-	if result.RowsAffected == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Cannot Update the Data"})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Updated Successfully"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"message": "Updated Successfully",
+	})
 }
-func DeleteInformation(c *fiber.Ctx) error{
-	var information models.HotspotInformation
 
+func DeleteInformation(c *fiber.Ctx) error{
 	id := c.Query("id")
 
 	if id == ""{
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "failed",
 			"message": "Query parameter 'Id' is Required",
 		})
 	}
 
 	convInt, errConv := strconv.Atoi(id)
 
-	if errConv != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": errConv.Error()})
+	if errConv != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "failed",
+			"message": errConv.Error(),
+		})
 	}
 
-	if err := models.DB.Delete(&information, convInt).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	err := usecases.DeleteInfrmation(convInt)
+
+	if err != nil{
+		if err.Error() == "hotspot information not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Hotspot Information not found",
+			})
+		}
+		if err.Error() == "invalid hotspot information id" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status": "failed",
+				"message": "Invalid hotspot information id",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Deleted Successfully"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"message": "Deleted Successfully",
+	})
 }
+
+// func DeleteInformationEXP(c *fiber.Ctx) error{
+// 	var information models.HotspotInformation
+
+// 	id := c.Query("id")
+
+// 	if id == ""{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"message": "Query parameter 'Id' is Required",
+// 		})
+// 	}
+
+// 	convInt, errConv := strconv.Atoi(id)
+
+// 	if errConv != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": errConv.Error()})
+// 	}
+
+// 	if err := models.DB.Delete(&information, convInt).Error; err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+// 	}
+
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Deleted Successfully"})
+// }
