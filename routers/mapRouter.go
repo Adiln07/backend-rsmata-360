@@ -9,5 +9,5 @@ import (
 func MapRoutes(router fiber.Router){
 	router.Get("/floor-with-rooms", mapController.GetAllFloorsWithRooms)
 	router.Get("/floor-with-rooms/detail", mapController.GetFLoorByIdWithRooms)
-	router.Patch("/room-with-children/:id", mapController.GetRoomByIdWithChildren)
+	router.Patch("/room-with-children/", mapController.GetRoomByIdWithChildren)
 }

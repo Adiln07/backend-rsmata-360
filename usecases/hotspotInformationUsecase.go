@@ -98,7 +98,7 @@ func UpdateInformation(hotspotInformationUpdateRequest requests.HotspotInformati
 
 }
 
-func DeleteInfrmation(id int)(error){
+func DeleteInformation(id int)(error){
 	if id <= 0{
 		return errors.New("invalid hotspot information id")
 	}

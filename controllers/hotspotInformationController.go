@@ -201,7 +201,7 @@ func DeleteInformation(c *fiber.Ctx) error{
 		})
 	}
 
-	err := usecases.DeleteInfrmation(convInt)
+	err := usecases.DeleteInformation(convInt)
 
 	if err != nil{
 		if err.Error() == "hotspot information not found" {
@@ -227,27 +227,3 @@ func DeleteInformation(c *fiber.Ctx) error{
 		"message": "Deleted Successfully",
 	})
 }
-
-// func DeleteInformationEXP(c *fiber.Ctx) error{
-// 	var information models.HotspotInformation
-
-// 	id := c.Query("id")
-
-// 	if id == ""{
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"message": "Query parameter 'Id' is Required",
-// 		})
-// 	}
-
-// 	convInt, errConv := strconv.Atoi(id)
-
-// 	if errConv != nil{
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": errConv.Error()})
-// 	}
-
-// 	if err := models.DB.Delete(&information, convInt).Error; err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
-// 	}
-
-// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Deleted Successfully"})
-// }
