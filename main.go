@@ -4,9 +4,12 @@ import (
 	"backend-rsmata-360/models"
 	"backend-rsmata-360/routers"
 	"backend-rsmata-360/validators"
+	ws "backend-rsmata-360/websocket"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	fiberWs "github.com/gofiber/websocket/v2"
 )
 
 func main() {
@@ -20,6 +23,27 @@ func main() {
 	})) 
 
 	models.ConnectDatabase()
+
+	hub := ws.NewHub()
+	ws.HubInstance = hub //Inject Global
+	go hub.Run()
+
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		if fiberWs.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
+	app.Get("/ws", ws.WebSocketHandler(hub))
+
+
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			hub.Broadcast <- []byte(`{"event":"test from server"}`)
+		}
+	}()
 
 	api := app.Group("/api")
 

@@ -4,6 +4,7 @@ import (
 	"backend-rsmata-360/requests"
 	"backend-rsmata-360/usecases"
 	"backend-rsmata-360/validators"
+	"backend-rsmata-360/websocket"
 	"errors"
 	"fmt"
 	"strconv"
@@ -23,6 +24,8 @@ func Index(c *fiber.Ctx) error{
 			"message": err.Error(),
 		})
 	}
+
+	websocket.Emit("floor:get_all", floors)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":"success",
@@ -64,6 +67,8 @@ func Show(c *fiber.Ctx) error{
 		})
 	}
 
+	websocket.Emit("floor:get_by_id", floor)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":"success",
 		"data": floor,
@@ -102,6 +107,8 @@ func Create(c *fiber.Ctx) error{
 			"message": err.Error(),
 		})
 	}
+
+	websocket.Emit("floor:created", floor)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "success",
@@ -146,6 +153,12 @@ func Update(c *fiber.Ctx) error{
 		})
 	}
 
+	websocket.Emit("floor:updated", fiber.Map{
+		"status":"success",
+		"message":"data successfully updated",
+		"id":convertInt,
+	})
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":"success",
 		"message":"data successfully updated",
@@ -180,6 +193,12 @@ func Delete(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
+
+	websocket.Emit("floor:deleted", fiber.Map{
+		"status": "success",
+		"message": "Data Completely Deleted!!",
+		"id": convertInt,
+	})
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "success",
