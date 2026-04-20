@@ -54,7 +54,7 @@ func main() {
 	api.Route("/room", routers.RoomRoutes)
 	api.Route("/hotspot-information", routers.HotspotInformationRoutes)
 	api.Route("/hotspot-navigation", routers.HotspotNavRoutes)
-	api.Route("/map", routers.MapRoutes)
+	api.Route("/map", routers.MapRoutes)  
 
 	app.Listen(":8080")
 }

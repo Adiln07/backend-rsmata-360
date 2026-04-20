@@ -45,6 +45,10 @@ func CreateRoom(roomCreateRequest requests.RoomCreateRequest)(models.Room, error
 		Status: roomCreateRequest.Status,
 	}
 
+	// Upload file disini 
+	
+	// mengambil url
+
 	floorRoom := models.FloorRoom{
 		FloorId: roomCreateRequest.FloorID,
 		Status: 1,
