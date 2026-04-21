@@ -5,6 +5,7 @@ import (
 	"backend-rsmata-360/usecases"
 	"backend-rsmata-360/validators"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -111,6 +112,154 @@ func CreateRoom(c *fiber.Ctx) error {
 }
 
 func UpdateRoom(c *fiber.Ctx) error{
+
+	id := c.Query("id");
+
+	var roomUpdateRequest requests.RoomUpdateRequest
+	var uploadedFileUrl string
+	var fileUploaded bool
+
+	if id == ""{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":"Query params 'id' required",
+		})
+	}
+
+	convertInt, errConv := strconv.Atoi(id)
+
+	if errConv != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message": errConv.Error(),
+		})
+	}
+
+	filesData, err := c.MultipartForm()
+
+	if err != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":err.Error(),
+		})
+	}
+
+	name := c.FormValue("name")
+	pos_x_str := c.FormValue("pos_x")
+	pos_y_str := c.FormValue("pos_y")
+	statusStr := c.FormValue("status")
+
+	files, ok := filesData.File["image"]
+
+	if ok && len(files) > 0{
+		
+		file := files[0]
+
+		fileMeta := usecases.FileMeta{
+		Filename: file.Filename,
+		Size: file.Size,
+		ContentType: file.Header.Get("Content-Type"),
+	}
+
+	result, err := usecases.UploadCase(fileMeta)
+
+	if err != nil{
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":"failed",
+				"message": err.Error(),
+			})
+		}
+
+	if err := c.SaveFile(file, "." + result.Url); err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":"failed",
+			"message":err.Error(),
+		})
+	}
+
+	roomUpdateRequest.Image = &result.Url
+	uploadedFileUrl = result.Url
+	fileUploaded = true
+
+	}
+
+	if name != ""{
+			roomUpdateRequest.Name = &name
+		}
+		if pos_x_str != ""{
+			pos_x, err := strconv.ParseFloat(pos_x_str, 64)
+
+			if err != nil{
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"status":"failed",
+					"message":err.Error(),
+				})
+			}
+			roomUpdateRequest.Pos_x = &pos_x
+		}
+
+		if pos_y_str != ""{
+			pos_y, err := strconv.ParseFloat(pos_y_str, 64)
+
+			if err != nil{
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"status":"failed",
+					"message":err.Error(),
+				})
+			}
+			roomUpdateRequest.Pos_y = &pos_y
+		}
+		if statusStr != ""{
+			status, err := strconv.Atoi(statusStr)
+			if err != nil{
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"status":"failed",
+					"message":err.Error(),
+				})
+			}
+			roomUpdateRequest.Status = &status
+		}
+
+	errr := usecases.UpdateRoom(roomUpdateRequest, convertInt)
+
+	if errr != nil {
+		if errr.Error() == "room not found"{
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status":"failed",
+				"message":"Room not found",
+			})
+		}
+		if errr.Error() == "invalid room id"{
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":"failed",
+				"message":"Invalid room id",
+			})
+		}
+		if errr.Error() == "no data to update"{
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":"failed",
+				"message":"No data to update",
+			})
+		}
+		if fileUploaded{
+			os.Remove("." + uploadedFileUrl)
+		}
+		
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": errr.Error(),
+		})
+		
+		
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"message": "Room updated successfully",
+	})
+}
+
+func UpdateRoomEXP(c *fiber.Ctx) error{
 	id := c.Query("id")
 
 	if id == ""{

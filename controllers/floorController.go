@@ -7,6 +7,7 @@ import (
 	"backend-rsmata-360/websocket"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -76,6 +77,107 @@ func Show(c *fiber.Ctx) error{
 }
 
 func Create(c *fiber.Ctx) error{
+
+	filesData, err := c.MultipartForm()
+
+	if err != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":err.Error(),
+		})
+	}
+
+	if filesData == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":"No files uploaded",
+		})
+	}
+
+	files, ok := filesData.File["image"]
+	if !ok || len(files) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":"No file Uploaded",
+		})
+	}
+
+	file := files[0]
+
+	fileMeta := usecases.FileMeta{
+		Filename: file.Filename,
+		Size: file.Size,
+		ContentType: file.Header.Get("Content-Type"),
+	}
+
+	result, err := usecases.UploadCase(fileMeta)
+
+	if err != nil{
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":"failed",
+				"message": err.Error(),
+			})
+		}
+
+	name := c.FormValue("name")
+	statusStr := c.FormValue("status")
+
+	status, err := strconv.Atoi(statusStr)
+
+	if err != nil{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"message":"status must be a number",
+		})
+	}
+
+	floorRequest := requests.FloorCreateRequest{
+		Name: name,
+		FloorPlan: result.Url,
+		Status: status,
+	}
+
+	if err := validators.Validate.Struct(floorRequest); err != nil{
+		errors := err.(validator.ValidationErrors)
+		errorMessages := make([]string, 0)
+
+		for _, e := range errors{
+			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
+		}
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":"failed",
+			"errors": errorMessages,
+		})	
+	}
+
+	if err := c.SaveFile(file, "." + result.Url); err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":"failed",
+			"message":err.Error(),
+		})
+	}
+
+	floor, err := usecases.CreateFloor(floorRequest)
+
+	if err != nil{
+		os.Remove("." + result.Url)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": "failed",
+			"message": err.Error(),
+		})
+	}
+
+	websocket.Emit("floor:created", floor)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data": floor,
+	})
+}
+
+func CreateEXP(c *fiber.Ctx) error{
 	var floorRequest requests.FloorCreateRequest
 
 	if err:= c.BodyParser(&floorRequest); err != nil{
