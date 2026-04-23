@@ -75,7 +75,7 @@ func CreateRoom(room models.Room, floorRoom models.FloorRoom)(models.Room, error
 	return room, nil
 }
 
-func UpdateRoom(roomUpdate map[string]interface{}, id int)(error){
+func UpdateRoom(roomUpdate models.Room, id int)(error){
 	var room models.Room
 
 	if err := models.DB.First(&room, id).Error ; err != nil {

@@ -10,9 +10,9 @@ type RoomCreateRequest struct {
 }
 
 type RoomUpdateRequest struct {
-	Name   *string  `json:"name"`
-	Image  *string  `json:"image"`
-	Pos_x  *float64 `json:"pos_x"`
-	Pos_y  *float64 `json:"pos_y"`
-	Status *int     `json:"status"`
+	Name   string  `validate:"required" json:"name"`
+	Image  string  `validate:"required" json:"image"`
+	Pos_x  float64 `validate:"required" json:"pos_x"`
+	Pos_y  float64 `validate:"required" json:"pos_y"`
+	Status int     `validate:"required" json:"status"`
 }

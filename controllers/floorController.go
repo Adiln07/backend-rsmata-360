@@ -76,6 +76,7 @@ func Show(c *fiber.Ctx) error{
 	})
 }
 
+// Create with Upload
 func Create(c *fiber.Ctx) error{
 
 	filesData, err := c.MultipartForm()

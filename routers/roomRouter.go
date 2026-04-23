@@ -10,6 +10,6 @@ func RoomRoutes(router fiber.Router) {
 	router.Get("/", roomController.GetAllRoom)
 	router.Get("/detail", roomController.GetRoomById)
 	router.Post("/", roomController.CreateRoom)
-	router.Patch("/", roomController.UpdateRoom)
+	router.Put("/", roomController.UpdateRoom)
 	router.Delete("/", roomController.DeleteRoom)
 } 
