@@ -19,10 +19,14 @@ type UploadResult struct{
 	Url 		string
 }
 
-func UploadCase(file FileMeta) (UploadResult, error) {
+func UploadCase(file FileMeta, basePath string) (UploadResult, error) {
 
 	if file.Size > 5*1024*1024 {
 		return UploadResult{}, errors.New("file size exceeds 5mb")
+	}
+
+	if basePath == "" {
+		return UploadResult{}, errors.New("base path is empty")
 	}
 
 	allowedTypes := []string{"image/jpeg", "image/png", "image/jpg"}
@@ -39,6 +43,6 @@ func UploadCase(file FileMeta) (UploadResult, error) {
 
 	return UploadResult{
 		Filename: newFileName,
-		Url: "/uploads/" + newFileName,
+		Url: basePath + newFileName,
 	}, nil
 }

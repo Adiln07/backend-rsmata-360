@@ -111,170 +111,170 @@ func CreateRoom(c *fiber.Ctx) error {
 	})
 }
 
-func UpdateRoom2(c *fiber.Ctx) error{
+// func UpdateRoom2(c *fiber.Ctx) error{
 
-	id := c.Query("id");
+// 	id := c.Query("id");
 
-	if id == ""{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message":"Query params 'id' required",
-		})
-	}
+// 	if id == ""{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message":"Query params 'id' required",
+// 		})
+// 	}
 
-	convertInt, errConv := strconv.Atoi(id)
+// 	convertInt, errConv := strconv.Atoi(id)
 
-	if errConv != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message": errConv.Error(),
-		})
-	}
+// 	if errConv != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message": errConv.Error(),
+// 		})
+// 	}
 
-	filesData, err := c.MultipartForm()
+// 	filesData, err := c.MultipartForm()
 
-	if err != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message":err.Error(),
-		})
-	}
+// 	if err != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message":err.Error(),
+// 		})
+// 	}
 
-	if filesData == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message":"No files uploaded",
-		})
-	}
+// 	if filesData == nil {
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message":"No files uploaded",
+// 		})
+// 	}
 
-	files, ok := filesData.File["image"]
-	if !ok || len(files) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message":"No file Uploaded",
-		})
-	}
+// 	files, ok := filesData.File["image"]
+// 	if !ok || len(files) == 0 {
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message":"No file Uploaded",
+// 		})
+// 	}
 
 
-	file := files[0]
+// 	file := files[0]
 
-	fileMeta := usecases.FileMeta{
-		Filename: file.Filename,
-		Size: file.Size,
-		ContentType: file.Header.Get("Content-Type"),
-	}
+// 	fileMeta := usecases.FileMeta{
+// 		Filename: file.Filename,
+// 		Size: file.Size,
+// 		ContentType: file.Header.Get("Content-Type"),
+// 	}
 
-	result, err := usecases.UploadCase(fileMeta)
+// 	result, err := usecases.UploadCase(fileMeta)
 
-	if err != nil{
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status":"failed",
-				"message": err.Error(),
-			})
-		}
+// 	if err != nil{
+// 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message": err.Error(),
+// 			})
+// 		}
 
-		name := c.FormValue("name")
-		pos_x_str := c.FormValue("pos_x")
-		pos_y_str := c.FormValue("pos_y")
-		statusStr := c.FormValue("status")
+// 		name := c.FormValue("name")
+// 		pos_x_str := c.FormValue("pos_x")
+// 		pos_y_str := c.FormValue("pos_y")
+// 		statusStr := c.FormValue("status")
 
-		pos_x ,err :=  strconv.ParseFloat(pos_x_str, 64)
+// 		pos_x ,err :=  strconv.ParseFloat(pos_x_str, 64)
 
-		if err != nil{
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"status":"failed",
-					"message":err.Error(),
-				})
-			}
+// 		if err != nil{
+// 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 					"status":"failed",
+// 					"message":err.Error(),
+// 				})
+// 			}
 
-			pos_y ,err :=  strconv.ParseFloat(pos_y_str, 64)
+// 			pos_y ,err :=  strconv.ParseFloat(pos_y_str, 64)
 
-		if err != nil{
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"status":"failed",
-					"message":err.Error(),
-				})
-			}
+// 		if err != nil{
+// 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 					"status":"failed",
+// 					"message":err.Error(),
+// 				})
+// 			}
 
-		status, err := strconv.Atoi(statusStr)
+// 		status, err := strconv.Atoi(statusStr)
 
-		if err != nil{
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"status":"failed",
-					"message":err.Error(),
-				})
-			}
+// 		if err != nil{
+// 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 					"status":"failed",
+// 					"message":err.Error(),
+// 				})
+// 			}
 
-		updateRequest := requests.RoomUpdateRequest{
-			Name: name,
-			Image: result.Url,
-			Pos_x: pos_x,
-			Pos_y: pos_y,
-			Status: status,
-		}
+// 		updateRequest := requests.RoomUpdateRequest{
+// 			Name: name,
+// 			Image: result.Url,
+// 			Pos_x: pos_x,
+// 			Pos_y: pos_y,
+// 			Status: status,
+// 		}
 
-		if err := validators.Validate.Struct(updateRequest); err != nil{
-		errors := err.(validator.ValidationErrors)
-		errorMessages := make([]string, 0)
+// 		if err := validators.Validate.Struct(updateRequest); err != nil{
+// 		errors := err.(validator.ValidationErrors)
+// 		errorMessages := make([]string, 0)
 
-		for _, e := range errors{
-			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
-		}
+// 		for _, e := range errors{
+// 			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
+// 		}
 
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"errors": errorMessages,
-		})	
-	}
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"errors": errorMessages,
+// 		})	
+// 	}
 
-	if err := c.SaveFile(file, "." + result.Url); err != nil{
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":"failed",
-			"message":err.Error(),
-		})
-	}
+// 	if err := c.SaveFile(file, "." + result.Url); err != nil{
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message":err.Error(),
+// 		})
+// 	}
 
-	errr := usecases.UpdateRoom(updateRequest, convertInt)
+// 	errr := usecases.UpdateRoom(updateRequest, convertInt)
 
-	if errr != nil {
-		if errr.Error() == "room not found"{
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status":"failed",
-				"message":"Room not found",
-			})
-		}
-		if errr.Error() == "invalid room id"{
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status":"failed",
-				"message":"Invalid room id",
-			})
-		}
-		if errr.Error() == "no data to update"{
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status":"failed",
-				"message":"No data to update",
-			})
-		}
+// 	if errr != nil {
+// 		if errr.Error() == "room not found"{
+// 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"Room not found",
+// 			})
+// 		}
+// 		if errr.Error() == "invalid room id"{
+// 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"Invalid room id",
+// 			})
+// 		}
+// 		if errr.Error() == "no data to update"{
+// 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"No data to update",
+// 			})
+// 		}
 		
-			os.Remove("." + result.Url)
-		
-		
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "failed",
-			"message": errr.Error(),
-		})
+// 			os.Remove("." + result.Url)
 		
 		
-	}
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"status": "failed",
+// 			"message": errr.Error(),
+// 		})
+		
+		
+// 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"message": "Room updated successfully",
-	})
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"status": "success",
+// 		"message": "Room updated successfully",
+// 	})
 
-}
+// }
 
-// update room with floor
+// update room with Uploads
 func UpdateRoom(c *fiber.Ctx) error {
 
 	id := c.Query("id")
@@ -294,6 +294,36 @@ func UpdateRoom(c *fiber.Ctx) error {
 			"message": errConv.Error(),
 		})
 	}
+
+	path, err := usecases.GetFilePathByName("Marzipano rooms")
+	
+	if err != nil {
+	if err.Error() == "file location not found" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location not found",
+		})
+	}
+
+	if err.Error() == "file location name is required" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location name is required",
+		})
+	}
+
+	if err.Error() == "file location path is empty" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location path is empty",
+		})
+	}
+
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		"status":  "failed",
+		"message": err.Error(),
+	})
+}
 
 	filesData, err := c.MultipartForm()
 
@@ -369,7 +399,7 @@ if statusStr != "" {
 		ContentType: file.Header.Get("Content-Type"),
 	}
 
-	result, err := usecases.UploadCase(fileMeta)
+	result, err := usecases.UploadCase(fileMeta, path)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "failed",
@@ -442,66 +472,66 @@ if statusStr != "" {
 	})
 }
 
-func UpdateRoomEXP(c *fiber.Ctx) error{
-	id := c.Query("id")
+// func UpdateRoomEXP(c *fiber.Ctx) error{
+// 	id := c.Query("id")
 
-	if id == ""{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": "failed",
-			"message": "Query params 'id' required",
-		})
-	}
+// 	if id == ""{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status": "failed",
+// 			"message": "Query params 'id' required",
+// 		})
+// 	}
 
-	convertInt, errConv := strconv.Atoi(id)
+// 	convertInt, errConv := strconv.Atoi(id)
 
-	if errConv != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"message": errConv.Error(),
-		})
-	}
+// 	if errConv != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"message": errConv.Error(),
+// 		})
+// 	}
 
-	var roomUpdateRequest requests.RoomUpdateRequest
+// 	var roomUpdateRequest requests.RoomUpdateRequest
 
-	if err := c.BodyParser(&roomUpdateRequest); err != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": "failed",
-			"message": err.Error(),
-		})
-	}
+// 	if err := c.BodyParser(&roomUpdateRequest); err != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status": "failed",
+// 			"message": err.Error(),
+// 		})
+// 	}
 
-	err := usecases.UpdateRoom(roomUpdateRequest, convertInt)
+// 	err := usecases.UpdateRoom(roomUpdateRequest, convertInt)
 
-	if err != nil {
-		if err.Error() == "room not found"{
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status":"failed",
-				"message":"Room not found",
-			})
-		}
-		if err.Error() == "invalid room id"{
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status":"failed",
-				"message":"Invalid room id",
-			})
-		}
-		if err.Error() == "no data to update"{
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status":"failed",
-				"message":"No data to update",
-			})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "failed",
-			"message": err.Error(),
-		})
-	}
+// 	if err != nil {
+// 		if err.Error() == "room not found"{
+// 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"Room not found",
+// 			})
+// 		}
+// 		if err.Error() == "invalid room id"{
+// 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"Invalid room id",
+// 			})
+// 		}
+// 		if err.Error() == "no data to update"{
+// 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 				"status":"failed",
+// 				"message":"No data to update",
+// 			})
+// 		}
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"status": "failed",
+// 			"message": err.Error(),
+// 		})
+// 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"message": "Room updated successfully",
-	})
-}
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"status": "success",
+// 		"message": "Room updated successfully",
+// 	})
+// }
 
 func DeleteRoom(c *fiber.Ctx) error{
 

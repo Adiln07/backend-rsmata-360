@@ -103,7 +103,9 @@ func Upload(c *fiber.Ctx) error{
 		ContentType: file.Header.Get("Content-Type"),
 	}
 
-	result, err := usecases.UploadCase(fileMeta)
+	path :="Marzipano Rooms"
+
+	result, err := usecases.UploadCase(fileMeta, path)
 
 	if err != nil{
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

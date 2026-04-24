@@ -79,6 +79,36 @@ func Show(c *fiber.Ctx) error{
 // Create with Upload
 func Create(c *fiber.Ctx) error{
 
+	path, err := usecases.GetFilePathByName("Marzipano floors")
+	
+	if err != nil {
+	if err.Error() == "file location not found" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location not found",
+		})
+	}
+
+	if err.Error() == "file location name is required" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location name is required",
+		})
+	}
+
+	if err.Error() == "file location path is empty" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "failed",
+			"message": "File location path is empty",
+		})
+	}
+
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		"status":  "failed",
+		"message": err.Error(),
+	})
+}
+
 	filesData, err := c.MultipartForm()
 
 	if err != nil{
@@ -111,7 +141,7 @@ func Create(c *fiber.Ctx) error{
 		ContentType: file.Header.Get("Content-Type"),
 	}
 
-	result, err := usecases.UploadCase(fileMeta)
+	result, err := usecases.UploadCase(fileMeta, path)
 
 	if err != nil{
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -178,46 +208,46 @@ func Create(c *fiber.Ctx) error{
 	})
 }
 
-func CreateEXP(c *fiber.Ctx) error{
-	var floorRequest requests.FloorCreateRequest
+// func CreateEXP(c *fiber.Ctx) error{
+// 	var floorRequest requests.FloorCreateRequest
 
-	if err:= c.BodyParser(&floorRequest); err != nil{
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"success",
-			"message":err.Error(),
-		})
-	}
+// 	if err:= c.BodyParser(&floorRequest); err != nil{
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"success",
+// 			"message":err.Error(),
+// 		})
+// 	}
 
-	if err := validators.Validate.Struct(floorRequest); err != nil{
-		errors := err.(validator.ValidationErrors)
-		errorMessages := make([]string, 0)
+// 	if err := validators.Validate.Struct(floorRequest); err != nil{
+// 		errors := err.(validator.ValidationErrors)
+// 		errorMessages := make([]string, 0)
 
-		for _, e := range errors{
-			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
-		}
+// 		for _, e := range errors{
+// 			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", e.Field(), e.Tag()))
+// 		}
 
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":"failed",
-			"errors": errorMessages,
-		})	
-	}
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"status":"failed",
+// 			"errors": errorMessages,
+// 		})	
+// 	}
 
-	floor, err := usecases.CreateFloor(floorRequest)
+// 	floor, err := usecases.CreateFloor(floorRequest)
 
-	if err != nil{
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "failed",
-			"message": err.Error(),
-		})
-	}
+// 	if err != nil{
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"status": "failed",
+// 			"message": err.Error(),
+// 		})
+// 	}
 
-	websocket.Emit("floor:created", floor)
+// 	websocket.Emit("floor:created", floor)
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": floor,
-	})
-}
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"status": "success",
+// 		"data": floor,
+// 	})
+// }
 
 func Update(c *fiber.Ctx) error{
 	id := c.Query("id")
